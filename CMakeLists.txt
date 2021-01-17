@@ -7,7 +7,6 @@ set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 
 project(camera_fusion)
 
-set(CMAKE_PREFIX_PATH "~/opencv/build/")
 find_package(OpenCV 4.1.0 REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
