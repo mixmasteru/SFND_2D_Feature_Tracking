@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <deque>
 #include <cmath>
 #include <limits>
 #include <opencv2/core.hpp>
@@ -16,11 +17,31 @@
 #include "dataStructures.h"
 #include "matching2D.hpp"
 
+using cv::Mat;
+
+using cv::FastFeatureDetector;
+using cv::SimpleBlobDetector;
+
+using cv::DMatch;
+using cv::BFMatcher;
+using cv::DrawMatchesFlags;
+using cv::Feature2D;
+using cv::ORB;
+using cv::BRISK;
+using cv::AKAZE;
+using cv::KAZE;
+using cv::Ptr;
+
+using cv::xfeatures2d::BriefDescriptorExtractor;
+using cv::xfeatures2d::SURF;
+using cv::xfeatures2d::SIFT;
+using cv::xfeatures2d::DAISY;
+using cv::xfeatures2d::FREAK;
+
 using namespace std;
 
 /* MAIN PROGRAM */
-int main(int argc, const char *argv[])
-{
+int main(int argc, const char *argv[]) {
 
     /* INIT VARIABLES AND DATA STRUCTURES */
 
@@ -37,13 +58,12 @@ int main(int argc, const char *argv[])
 
     // misc
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
-    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
+    deque<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = false;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
 
-    for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex++)
-    {
+    for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex++) {
         /* LOAD IMAGE INTO BUFFER */
 
         // assemble filenames for current index
@@ -63,6 +83,9 @@ int main(int argc, const char *argv[])
         DataFrame frame;
         frame.cameraImg = imgGray;
         dataBuffer.push_back(frame);
+        if (dataBuffer.size() > dataBufferSize) {
+            dataBuffer.pop_front();
+        }
 
         //// EOF STUDENT ASSIGNMENT
         cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
@@ -77,14 +100,22 @@ int main(int argc, const char *argv[])
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
-        if (detectorType.compare("SHITOMASI") == 0)
-        {
+        if (detectorType.compare("SHITOMASI") == 0) {
             detKeypointsShiTomasi(keypoints, imgGray, false);
         }
-        else
-        {
-            //...
+        if (detectorType.compare("HARRIS") == 0) {
+            detKeypointsHarris(keypoints, imgGray, false);
         }
+        if(detectorType.compare("FAST") == 0){
+            Ptr<cv::FastFeatureDetector> detector = cv::FastFeatureDetector::create(10, true);
+            detector->detect(imgGray, keypoints);
+        }
+        if (detectorType.compare("BLOB") == 0) {
+            Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create();
+            detector->detect(imgGray, keypoints);
+        }
+
+
         //// EOF STUDENT ASSIGNMENT
 
         //// STUDENT ASSIGNMENT
@@ -92,22 +123,24 @@ int main(int argc, const char *argv[])
 
         // only keep keypoints on the preceding vehicle
         bool bFocusOnVehicle = true;
-        cv::Rect vehicleRect(535, 180, 180, 150);
-        if (bFocusOnVehicle)
-        {
-            // ...
+        if (bFocusOnVehicle) {
+            auto rm = remove_if(keypoints.begin(), keypoints.end(),
+                                [](cv::KeyPoint p) { return !p.pt.inside(cv::Rect(535, 180, 180, 150)); });
+            cout << keypoints.size() << endl;
+            keypoints.erase(rm, keypoints.end());
+            cout << keypoints.size() << endl;
         }
+
 
         //// EOF STUDENT ASSIGNMENT
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = false;
-        if (bLimitKpts)
-        {
+        if (bLimitKpts) {
             int maxKeypoints = 50;
 
-            if (detectorType.compare("SHITOMASI") == 0)
-            { // there is no response info, so keep the first 50 as they are sorted in descending quality order
+            if (detectorType.compare("SHITOMASI") ==0) {
+                // there is no response info, so keep the first 50 as they are sorted in descending quality order
                 keypoints.erase(keypoints.begin() + maxKeypoints, keypoints.end());
             }
             cv::KeyPointsFilter::retainBest(keypoints, maxKeypoints);
@@ -161,8 +194,7 @@ int main(int argc, const char *argv[])
 
             // visualize matches between current and previous image
             bVis = true;
-            if (bVis)
-            {
+            if (bVis) {
                 cv::Mat matchImg = ((dataBuffer.end() - 1)->cameraImg).clone();
                 cv::drawMatches((dataBuffer.end() - 2)->cameraImg, (dataBuffer.end() - 2)->keypoints,
                                 (dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->keypoints,

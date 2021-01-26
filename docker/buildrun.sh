@@ -15,6 +15,7 @@ docker run -d \
     -p 127.0.0.1:2223:22 \
     opencv:$VERSION
 
-#export containerId=$(docker ps -l -q)
-#xhost +local:`docker inspect --format='' $containerId`
+export containerId=$(docker ps -fname=opencv -q)
+xhost +local:`docker inspect --format='{{ .Config.Hostname }}' $containerId`
 #docker start $containerId
+
