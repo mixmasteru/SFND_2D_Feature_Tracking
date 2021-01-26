@@ -17,20 +17,7 @@
 #include "dataStructures.h"
 #include "matching2D.hpp"
 
-using cv::Mat;
 
-using cv::FastFeatureDetector;
-using cv::SimpleBlobDetector;
-
-using cv::DMatch;
-using cv::BFMatcher;
-using cv::DrawMatchesFlags;
-using cv::Feature2D;
-using cv::ORB;
-using cv::BRISK;
-using cv::AKAZE;
-using cv::KAZE;
-using cv::Ptr;
 
 using cv::xfeatures2d::BriefDescriptorExtractor;
 using cv::xfeatures2d::SURF;
@@ -94,25 +81,19 @@ int main(int argc, const char *argv[]) {
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+        string detectorType = "HARRIS";
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
-        if (detectorType.compare("SHITOMASI") == 0) {
-            detKeypointsShiTomasi(keypoints, imgGray, false);
+        if (detectorType == "SHITOMASI") {
+            detKeypointsShiTomasi(keypoints, imgGray, bVis);
         }
-        if (detectorType.compare("HARRIS") == 0) {
-            detKeypointsHarris(keypoints, imgGray, false);
-        }
-        if(detectorType.compare("FAST") == 0){
-            Ptr<cv::FastFeatureDetector> detector = cv::FastFeatureDetector::create(10, true);
-            detector->detect(imgGray, keypoints);
-        }
-        if (detectorType.compare("BLOB") == 0) {
-            Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create();
-            detector->detect(imgGray, keypoints);
+        if (detectorType == "HARRIS") {
+            detKeypointsHarris(keypoints, imgGray, bVis);
+        } else{
+            detKeypointsModern(keypoints, imgGray, detectorType, bVis);
         }
 
 
@@ -126,9 +107,7 @@ int main(int argc, const char *argv[]) {
         if (bFocusOnVehicle) {
             auto rm = remove_if(keypoints.begin(), keypoints.end(),
                                 [](cv::KeyPoint p) { return !p.pt.inside(cv::Rect(535, 180, 180, 150)); });
-            cout << keypoints.size() << endl;
             keypoints.erase(rm, keypoints.end());
-            cout << keypoints.size() << endl;
         }
 
 
@@ -158,7 +137,7 @@ int main(int argc, const char *argv[]) {
         //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
 
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "AKAZE"; // BRISK, BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
@@ -175,7 +154,7 @@ int main(int argc, const char *argv[]) {
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
             string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-            string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+            string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
             //// STUDENT ASSIGNMENT
             //// TASK MP.5 -> add FLANN matching in file matching2D.cpp
