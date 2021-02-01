@@ -24,10 +24,30 @@ The idea of the camera course is to build a collision detection system - that's 
 ./2D_feature_tracking > output.csv
 head -n1 output.csv && tail -n+2 output.csv | sort --field-separator=',' --key=5 
 ```
+## MP.7 Performance Evaluation 1
+In the [table](##Results sort by total time) below you will find all available data 
+for the detector / descriptor combinations. The column "total_kp" shows the number 
+of keypoints collected in the code.
+
+## MP.8 Performance Evaluation 2
+In the [table](##Results sort by total time) below you will find all available data
+for the detector / descriptor combinations. The column "total_match" shows the number
+of matched keypoints for all 10 images collected in the code.
+
+## MP.9 Performance Evaluation 3
+The column "total_time" in the [table](##Results sort by total time) below
+shows the total time it takes for keypoint detection and descriptor extraction 
+collected in the code.
+
+### The TOP3 detector / descriptor combinations are:
+* FAST-ORB
+* FAST-BRIEF
+* FAST-BRISK
+
+These are recommended as the best choice for the purpose of detecting keypoints on vehicles
+in this case.
 
 ## Results sort by total time
-The TOP3 detector / descriptor combinations are recommended 
-as the best choice for our purpose of detecting keypoints on vehicles.
 
 |detectorType|descriptorType|total_kp|total_match|total_time|
 |------------|--------------|--------|-----------|----------|
