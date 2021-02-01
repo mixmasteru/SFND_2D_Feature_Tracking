@@ -47,9 +47,8 @@ collected in the code.
 These are recommended as the best choice for the purpose of detecting keypoints on vehicles
 in this case.
 
-
-##<a name="table">Results sort by total time </a>
-
+## Results sort by total time 
+# <a name="table"></a>
 |detectorType|descriptorType|total_kp|total_match|total_time|
 |------------|--------------|--------|-----------|----------|
 |**FAST**    |**ORB**       |**4094**|**2061**   |**0.0351665** |
